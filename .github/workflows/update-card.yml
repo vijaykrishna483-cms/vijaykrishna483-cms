@@ -18,14 +18,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python generate.py
+      # ACCESS_TOKEN (a PAT with repo read) lets the card count private repos too;
+      # without it the run is skipped so the count never drops back to public-only
+      - run: |
+          if [ -z "$ACCESS_TOKEN" ]; then echo "ACCESS_TOKEN secret not set, skipping"; exit 0; fi
+          python generate.py
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add profile.svg
+          git add profile.svg README.md
           if ! git diff --cached --quiet; then
             git commit -m "Update profile card stats"
             git push

@@ -8,8 +8,10 @@ Stdlib only, so the daily GitHub Action can run it. Stats come from the GitHub A
     python generate.py
 """
 import datetime as dt
+import hashlib
 import json
 import os
+import re
 import urllib.request
 from html import escape
 
@@ -30,7 +32,7 @@ THEME = dict(bg="#161b22", fg="#c9d1d9", key="#ffa657", value="#a5d6ff", cc="#61
 
 def api(url, body=None):
     headers = {"User-Agent": USER, "Accept": "application/vnd.github+json"}
-    token = os.environ.get("GITHUB_TOKEN")
+    token = os.environ.get("ACCESS_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if token:
         headers["Authorization"] = f"Bearer {token}"
     data = json.dumps(body).encode() if body else None
@@ -39,7 +41,11 @@ def api(url, body=None):
 
 
 def stats():
-    repos = api(f"https://api.github.com/users/{USER}/repos?per_page=100&type=owner")
+    if os.environ.get("ACCESS_TOKEN"):
+        # personal token: /user/repos also sees private repos
+        repos = api("https://api.github.com/user/repos?per_page=100&affiliation=owner")
+    else:
+        repos = api(f"https://api.github.com/users/{USER}/repos?per_page=100&type=owner")
     s = {"repos": len(repos), "stars": sum(r["stargazers_count"] for r in repos)}
     try:
         q = 'query{user(login:"%s"){contributionsCollection{contributionCalendar{totalContributions} totalCommitContributions}}}' % USER
@@ -163,6 +169,13 @@ if __name__ == "__main__":
     s = stats()
     lines = info_lines(s)
     portrait = open("assets/ascii.txt", encoding="utf-8").read().splitlines()
+    card = svg(portrait, lines)
     with open("profile.svg", "w", encoding="utf-8") as f:
-        f.write(svg(portrait, lines))
+        f.write(card)
+    # version the image URL so GitHub's image cache picks up every change
+    version = hashlib.sha1(card.encode()).hexdigest()[:8]
+    readme = open("README.md", encoding="utf-8").read()
+    readme = re.sub(r'src="\./profile\.svg(\?v=\w+)?"', f'src="./profile.svg?v={version}"', readme)
+    with open("README.md", "w", encoding="utf-8") as f:
+        f.write(readme)
     print("stats:", s)
