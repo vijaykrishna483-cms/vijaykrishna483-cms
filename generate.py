@@ -23,7 +23,7 @@ P_X, P_Y, P_CHAR, P_LINE = 15, 23, 398 / 120, 525 / 71
 P_FONT = round(P_LINE * 0.83, 2)
 ROW_DELAY = 0.025
 # info column
-I_X, I_Y, I_FONT, I_LINE, I_COLS = 440, 34, 14, 21, 62
+I_X, I_Y, I_FONT, I_LINE, I_COLS = 440, 30, 14, 19.5, 62
 
 THEME = dict(bg="#161b22", fg="#c9d1d9", key="#ffa657", value="#a5d6ff", cc="#616e7f", scan="#58a6ff")
 
@@ -70,9 +70,14 @@ def info_lines(s):
     stat_line = f"{s['repos']} repos | {s['stars']} stars"
     lines = [
         header("vijay@krishna"),
-        kv("Role", "Full Stack Developer & AI Workflow Eng."),
+        kv("Role", "Software Engineer"),
         kv("Org", "IIT Madras"),
+        kv("Currently", "Building AI agents, esp. Voice Agents"),
         kv("Uptime", uptime(dt.date.today())),
+        [],
+        kv("AI.Agents", "LiveKit Agents, MCP, Tool Calling, RAG"),
+        kv("AI.Voice", "Realtime STT -> LLM -> TTS, VAD, WebRTC"),
+        kv("AI.Ops", "Agent Evals, Observability, Guardrails"),
         [],
         kv("Languages.Programming", "C, C++, Java, Python, JS, TS"),
         kv("Languages.Web", "HTML, CSS, GraphQL"),
